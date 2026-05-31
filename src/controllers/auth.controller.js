@@ -34,4 +34,47 @@ async function registerUser(req, res) {
   });
 }
 
-module.exports = { registerUser };
+async function loginUser(req, res) {
+  //check if user exist or not
+  const { username, email, password } = req.body;
+  const user = await userModel.findOne({
+    $or: [{ username: username }, { email: email }],
+  });
+  if (!user) {
+    return res.status(401).json({
+      message: "user does not exist",
+    });
+  }
+  const userToken = req.cookies.token;
+  if (!userToken) {
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        message: "invalid credentials",
+      });
+    }
+    const token = jwt.sign(
+      {
+        username: user.username,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+    );
+    res.cookie("token", token);
+    res.status(200).json({
+      message: "login successfull",
+    });
+  }
+  try {
+    const decoded = jwt.verify(userToken, process.env.JWT_SECRET);
+    res.status(200).json({
+      message: "login successfull",
+    });
+  } catch (err) {
+    return res.status(401).json({
+      message: "invalid token",
+    });
+  }
+}
+
+module.exports = { registerUser, loginUser };
