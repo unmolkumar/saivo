@@ -127,4 +127,27 @@ describe("auth routes", () => {
       expect(response.body.message).toBe("invalid token");
     });
   });
+
+  describe("POST /logout", () => {
+    test("should not allow logout with no token", async () => {
+      const response = await request(app).post("/api/auth/logout");
+      console.log("umhm");
+      expect(response.statusCode).toBe(401);
+      expect(response.body.message).toBe("unauthorised");
+    });
+
+    test("should allow logout with valid token", async () => {
+      const user = await request(app).post("/api/auth/register").send({
+        username: "unmolkumar",
+        password: "1234567890",
+        email: "unmolkumar.login@gmail.com",
+      });
+      const token = user.headers["set-cookie"];
+      const response = await request(app)
+        .post("/api/auth/logout")
+        .set("Cookie", token);
+      expect(response.statusCode).toBe(200);
+      expect(response.body.message).toBe("logout successfull");
+    });
+  });
 });
