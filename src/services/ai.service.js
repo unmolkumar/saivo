@@ -1,5 +1,4 @@
 const groq = require("groq-sdk");
-require("dotenv").config();
 const client = new groq({
   apiKey: process.env.GROQ_API_KEY,
 });
