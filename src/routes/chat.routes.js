@@ -5,4 +5,6 @@ const authMiddleware = require("../middlewares/auth.middleware.js");
 
 router.post("/new-chat", authMiddleware.validateUser, chatController.newChat);
 
+router.post("/:chat_id", chatController.continueChat);
+
 module.exports = router;
