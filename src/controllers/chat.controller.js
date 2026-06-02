@@ -36,4 +36,33 @@ async function newChat(req, res) {
   });
 }
 
-module.exports = { newChat };
+async function continueChat(req, res) {
+  const chat_id = req.params.chat_id;
+  const prompt = req.body.prompt;
+  const chat = await conversationModel.findOne({
+    chat_id: chat_id,
+  });
+  const userPrompt = {
+    role: "user",
+    content: prompt,
+  };
+  chat.conversation.push(userPrompt);
+  const conversation = chat.conversation.map((object) => {
+    return {
+      role: object.role,
+      content: object.content,
+    };
+  });
+  const response = await aiService.answer(conversation);
+  const assistantResponse = {
+    role: response.choices[0].message.role,
+    content: response.choices[0].message.content,
+  };
+  chat.conversation.push(assistantResponse);
+  await chat.save();
+  res.status(200).json({
+    prompt: assistantResponse,
+  });
+}
+
+module.exports = { newChat, continueChat };
